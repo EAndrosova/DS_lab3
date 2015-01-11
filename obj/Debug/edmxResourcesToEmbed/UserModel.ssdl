@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="UserModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityContainer Name="UserModelStoreContainer">
+    <EntitySet Name="UsersLab3" EntityType="UserModel.Store.UsersLab3" store:Type="Tables" Schema="dbo" />
+  </EntityContainer>
+  <EntityType Name="UsersLab3">
+    <Key>
+      <PropertyRef Name="Username" />
+    </Key>
+    <Property Name="Username" Type="nvarchar" Nullable="false" MaxLength="20" />
+    <Property Name="Pwd" Type="nvarchar" Nullable="false" MaxLength="10" />
+    <Property Name="City" Type="nvarchar" Nullable="false" MaxLength="60" />
+  </EntityType>
+</Schema>
