@@ -43,7 +43,8 @@ namespace DS_lab3.Controllers
                 var client = new WebClient();
                 var str = "http://localhost:54266/api/Session/Login?name=111&pwd=111111";
                 //Session["s_id"] = client.DownloadString(str);
-                var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Login?name=111&pwd=111111");
+                //var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Login?name=111&pwd=111111");
+                var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Login?name="+model.UserName+"&pwd="+model.Password);
                 httpRequest.Method = "POST";
                 httpRequest.ContentLength = 0;
 

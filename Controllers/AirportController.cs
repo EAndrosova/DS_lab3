@@ -197,6 +197,24 @@ namespace DS_lab3.Controllers
             return View("ErrorSession");
         }
 
+        public ActionResult FlightsByCity(int port)
+        {
+            var httpRequest = WebRequest.CreateHttp("http://localhost:57040/api/Flights/FlightsByPort?port=" + port.ToString());
+            httpRequest.Method = "POST";
+            httpRequest.ContentLength = 0;
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            if (httpResponse.StatusCode == HttpStatusCode.OK)
+            {
+                var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                var result = streamReader.ReadToEnd();
+                var flights = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<List<Flights>>(result);
+                //return View("Index", "Flight", flights);
+                return View(flights);               
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
         protected override void Dispose(bool disposing)
         {
             db.Dispose();

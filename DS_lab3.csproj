@@ -402,6 +402,7 @@
     <Content Include="Views\Airport\Delete.cshtml" />
     <Content Include="Views\ErrorUser.cshtml" />
     <Content Include="Views\Airport\ErrorSession.cshtml" />
+    <Content Include="Views\Airport\FlightsByCity.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
