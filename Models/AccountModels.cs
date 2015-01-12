@@ -82,6 +82,11 @@ namespace DS_lab3.Models
         [Display(Name = "Password")]
         public string Password { get; set; }
 
+
+        [Required]
+        [Display(Name = "City")]
+        public string City { get; set; }
+
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]

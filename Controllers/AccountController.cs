@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
-using System.Web;
-using System.Web.Mvc;
 using System.Web.Security;
 using DotNetOpenAuth.AspNet;
 using Microsoft.Web.WebPages.OAuth;
 using WebMatrix.WebData;
 using DS_lab3.Filters;
+using System.Web;
+using System.Web.Mvc;
+using System.Net;
+using System.IO;
 using DS_lab3.Models;
 
 namespace DS_lab3.Controllers
@@ -35,8 +37,25 @@ namespace DS_lab3.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(LoginModel model, string returnUrl)
         {
-            if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
+            //if (ModelState.IsValid && WebSecurity.Login(model.UserName, model.Password, persistCookie: model.RememberMe))
+            if (ModelState.IsValid)
             {
+                var client = new WebClient();
+                var str = "http://localhost:54266/api/Session/Login?name=111&pwd=111111";
+                //Session["s_id"] = client.DownloadString(str);
+                var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Login?name=111&pwd=111111");
+                httpRequest.Method = "POST";
+                httpRequest.ContentLength = 0;
+
+
+                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                if (httpResponse.StatusCode == HttpStatusCode.OK)
+                {
+                    var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                    var result = streamReader.ReadToEnd();
+                    Session["s_id"] = result;
+                    var s = Session["s_id"];
+                }
                 return RedirectToLocal(returnUrl);
             }
 
@@ -52,9 +71,56 @@ namespace DS_lab3.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
         {
-            WebSecurity.Logout();
+            if (Session["s_id"] == null)
+                return View("ErrorSession");
+            //WebSecurity.Logout();
+            var client = new WebClient();
+            var str = "http://localhost:54266/api/Session/Login?name=111&pwd=111111";
+            //Session["s_id"] = client.DownloadString(str);
+            var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Logout?session=" + Session["s_id"].ToString());
+            httpRequest.Method = "POST";
+            httpRequest.ContentLength = 0;
 
-            return RedirectToAction("Index", "Home");
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            if (httpResponse.StatusCode == HttpStatusCode.OK)
+            {
+                //var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                //var result = streamReader.ReadToEnd();
+                //Session["s_id"] = result;
+                //var s = Session["s_id"];
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View("ErrorSession");
+        }
+
+        public ActionResult LogOut()
+        {
+            if (Session["s_id"] == null)
+                return View("ErrorSession");
+            //WebSecurity.Logout();
+            var client = new WebClient();
+            var str = "http://localhost:54266/api/Session/Login?name=111&pwd=111111";
+            //Session["s_id"] = client.DownloadString(str);
+            var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Logout?session=" + Session["s_id"].ToString());
+            httpRequest.Method = "POST";
+            httpRequest.ContentLength = 0;
+
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            if (httpResponse.StatusCode == HttpStatusCode.OK)
+            {
+                //var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                //var result = streamReader.ReadToEnd();
+                //Session["s_id"] = result;
+                //var s = Session["s_id"];
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View("ErrorSession");
         }
 
         //
@@ -77,7 +143,7 @@ namespace DS_lab3.Controllers
             if (ModelState.IsValid)
             {
                 // Attempt to register the user
-                try
+                /*try
                 {
                     WebSecurity.CreateUserAndAccount(model.UserName, model.Password);
                     WebSecurity.Login(model.UserName, model.Password);
@@ -86,12 +152,43 @@ namespace DS_lab3.Controllers
                 catch (MembershipCreateUserException e)
                 {
                     ModelState.AddModelError("", ErrorCodeToString(e.StatusCode));
-                }
+                }*/
+                UsersLab3 user = new UsersLab3(); user.City = model.City; user.Pwd = model.Password; user.Username = model.UserName;
+                var ftJson = (new System.Web.Script.Serialization.JavaScriptSerializer()).Serialize(user);
+                var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Register");
+                httpRequest.Method = "POST";
+                var streamWriter = new StreamWriter(httpRequest.GetRequestStream());
+                streamWriter.Write(ftJson);
+                streamWriter.Flush(); streamWriter.Close();
+
+                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                return RedirectToAction("Index", "Home");
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
         }
+
+        public bool IsLogged()
+        {
+            if (Session["s_id"] == null)
+                return false;
+            var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/");
+            httpRequest.Method = "POST";
+            httpRequest.ContentLength = 0;
+
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            if (httpResponse.StatusCode == HttpStatusCode.OK)
+            {
+                return true;
+            }
+            return false;
+            
+        }
+
+        // some other stuff
+        #region
 
         //
         // POST: /Account/Disassociate
@@ -402,6 +499,8 @@ namespace DS_lab3.Controllers
                     return "An unknown error occurred. Please verify your entry and try again. If the problem persists, please contact your system administrator.";
             }
         }
+        #endregion
+
         #endregion
     }
 }

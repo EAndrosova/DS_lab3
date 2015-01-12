@@ -20,7 +20,10 @@ namespace DS_lab3.Controllers
 
         public ActionResult Index()
         {
-            return View(db.Flights.ToList());
+            var client = new WebClient();
+            var resp = client.DownloadString("http://localhost:57040/api/Flights");
+            var fl = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<List<Flights>>(resp);
+            return View(fl);
         }
 
         //
@@ -28,12 +31,15 @@ namespace DS_lab3.Controllers
 
         public ActionResult Details(Guid id)
         {
-            Flights flights = db.Flights.Find(id);
+            /*Flights flights = db.Flights.Find(id);
             if (flights == null)
             {
                 return HttpNotFound();
-            }
-            return View(flights);
+            }*/
+            var client = new WebClient();
+            var resp = client.DownloadString(String.Format("http://localhost:57040/api/Flights/GetFlight?id={0}", id));
+            var fl = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<Flights>(resp);
+            return View(fl);
         }
 
         //
@@ -75,14 +81,19 @@ namespace DS_lab3.Controllers
 
         public ActionResult Edit(Guid id)
         {
-            var httpRequest = WebRequest.CreateHttp(String.Format("http://localhost:57040/api/Flights/Get?id={0}", id));
+            /*var httpRequest = WebRequest.CreateHttp(String.Format("http://localhost:57040/api/Flights/Get?id={0}", id));
             httpRequest.Method = "GET";
             var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
             var streamReader = new StreamReader(httpResponse.GetResponseStream());
-            var result = streamReader.ReadToEnd();
-            var data = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<JsonResult>(result);
-            var flights = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<Models.Flights>(data.Data.ToString());
-            return View(flights);
+            var result = streamReader.ReadToEnd();*/
+            //var data = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<JsonResult>(result);
+            //var flights = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<Models.Flights>(result);
+
+
+            var client = new WebClient();
+            var resp = client.DownloadString(String.Format("http://localhost:57040/api/Flights/GetFlight?id={0}", id));
+            var fl = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<Flights>(resp);
+            return View(fl);
         }
 
         //

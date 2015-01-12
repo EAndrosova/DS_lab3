@@ -8,6 +8,8 @@
     <h1>@ViewBag.Title.</h1>
 </hgroup>
 
+@Html.ActionLink("Log out", "LogOut", "Airport");
+
 <section id="loginForm">
 <h2>Use a local account to log in.</h2>
 @using (Html.BeginForm(new { ReturnUrl = ViewBag.ReturnUrl })) {

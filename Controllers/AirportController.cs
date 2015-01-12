@@ -20,7 +20,45 @@ namespace DS_lab3.Controllers
 
         public ActionResult Index()
         {
-            return View(db.Airports.ToList());
+            var client = new WebClient();
+            var resp = client.DownloadString("http://localhost:53391/api/Airports");
+            var fl = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<List<Airports>>(resp);
+            return View(fl);
+        }
+
+        public ActionResult AirportsInTheCity()
+        {
+            if (Session["s_id"] == null)
+                return View("ErrorSession");
+            var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Additional/IsLogged?session="+Session["s_id"].ToString());
+            var s = Session["s_id"].ToString();
+            httpRequest.Method = "POST";
+            httpRequest.ContentLength = 0;
+            
+            try
+            {
+                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                var result = streamReader.ReadToEnd();
+                //Session["s_id"] = result;
+                if (httpResponse.StatusCode != HttpStatusCode.OK)
+                    return View("ErrorSession");
+
+
+                var client = new WebClient();
+                var str = "http://localhost:54266/api/Help/getcity?session=" + Session["s_id"].ToString();
+                var city = client.DownloadString(str);
+                if (Response.StatusCode != 200)
+                    return View("ErrorSession");
+                //var city = "Berlin";
+                var js = client.DownloadString("http://localhost:53391/Additional/PortsInCity?city=" + city);
+                var ports = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<List<Airports>>(js);
+                return View("Index", ports);
+            }
+            catch (Exception ex)
+                {
+                    return View("ErrorSession");
+                }
         }
 
         //
@@ -28,12 +66,10 @@ namespace DS_lab3.Controllers
 
         public ActionResult Details(int id = 0)
         {
-            Airports airports = db.Airports.Find(id);
-            if (airports == null)
-            {
-                return HttpNotFound();
-            }
-            return View(airports);
+            var client = new WebClient();
+            var resp = client.DownloadString(String.Format("http://localhost:53391/api/Airports/GetPort?id={0}", id));
+            var fl = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<Airports>(resp);
+            return View(fl);
         }
 
         //
@@ -54,12 +90,14 @@ namespace DS_lab3.Controllers
             {
                 /*db.Airports.Add(airports);
                 db.SaveChanges();*/
-                var portJson = (new System.Web.Script.Serialization.JavaScriptSerializer()).Serialize(airports);
+                var ftJson = (new System.Web.Script.Serialization.JavaScriptSerializer()).Serialize(airports);
                 var httpRequest = WebRequest.CreateHttp("http://localhost:53391/api/Airports/PostPort");
                 httpRequest.Method = "POST";
                 var streamWriter = new StreamWriter(httpRequest.GetRequestStream());
-                streamWriter.Write(portJson);
+                streamWriter.Write(ftJson);
                 streamWriter.Flush(); streamWriter.Close();
+
+                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
                 return RedirectToAction("Index");
             }
 
@@ -71,12 +109,10 @@ namespace DS_lab3.Controllers
 
         public ActionResult Edit(int id = 0)
         {
-            Airports airports = db.Airports.Find(id);
-            if (airports == null)
-            {
-                return HttpNotFound();
-            }
-            return View(airports);
+            var client = new WebClient();
+            var resp = client.DownloadString(String.Format("http://localhost:53391/api/Airports/GetPort?id={0}", id));
+            var fl = (new System.Web.Script.Serialization.JavaScriptSerializer()).Deserialize<Airports>(resp);
+            return View(fl);
         }
 
         //
@@ -90,7 +126,7 @@ namespace DS_lab3.Controllers
                 /*db.Entry(airports).State = EntityState.Modified;
                 db.SaveChanges();*/
                 var portJson = (new System.Web.Script.Serialization.JavaScriptSerializer()).Serialize(airports);
-                var httpRequest = WebRequest.CreateHttp(String.Format("http://localhost:53391/api/Airports/PutPort?id={0}", airports.AirportID);
+                var httpRequest = WebRequest.CreateHttp(String.Format("http://localhost:53391/api/Airports/PutPort?id={0}", airports.AirportID));
                 httpRequest.Method = "PUT";
                 var streamWriter = new StreamWriter(httpRequest.GetRequestStream());
                 streamWriter.Write(portJson);
@@ -115,6 +151,10 @@ namespace DS_lab3.Controllers
             var httpRequest = WebRequest.CreateHttp(String.Format("http://localhost:53391/api/Airports/DeletePort?id={0}", id));
             httpRequest.Method = "DELETE";
             var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                var result = streamReader.ReadToEnd();
+            }
             return RedirectToAction("Index");
         }
 
@@ -129,6 +169,33 @@ namespace DS_lab3.Controllers
             db.SaveChanges();
             return RedirectToAction("Index");
         }*/
+
+        public ActionResult LogOut()
+        {
+            if (Session["s_id"] == null)
+                return View("ErrorSession");
+            //WebSecurity.Logout();
+            var client = new WebClient();
+            var str = "http://localhost:54266/api/Session/Login?name=111&pwd=111111";
+            //Session["s_id"] = client.DownloadString(str);
+            var httpRequest = WebRequest.CreateHttp("http://localhost:54266/api/Session/Logout?session=" + Session["s_id"].ToString());
+            httpRequest.Method = "POST";
+            httpRequest.ContentLength = 0;
+
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            if (httpResponse.StatusCode == HttpStatusCode.OK)
+            {
+                //var streamReader = new StreamReader(httpResponse.GetResponseStream());
+                //var result = streamReader.ReadToEnd();
+                //Session["s_id"] = result;
+                //var s = Session["s_id"];
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View("ErrorSession");
+        }
 
         protected override void Dispose(bool disposing)
         {

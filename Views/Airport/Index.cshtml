@@ -6,6 +6,8 @@
 
 <h2>Index</h2>
 
+@Html.ActionLink("Airports in City", "AirportsInTheCity")
+
 <p>
     @Html.ActionLink("Create New", "Create")
 </p>
@@ -41,9 +43,9 @@
             @Html.DisplayFor(modelItem => item.ABB)
         </td>
         <td>
-            @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-            @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            @Html.ActionLink("Edit", "Edit", new { id=item.AirportID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.AirportID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.AirportID  })
         </td>
     </tr>
 }
